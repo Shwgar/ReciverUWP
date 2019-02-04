@@ -16,6 +16,7 @@ using System.Diagnostics;
 using Microsoft.Azure.Devices.Client;
 using Newtonsoft.Json;
 using System.Text;
+using Polly;
 
 
 
@@ -56,14 +57,14 @@ namespace ReciverUWP
         {
         
             this.InitializeComponent();
-            ReceiveC2dAsync();
+            var policy = Policy.Handle<Microsoft.Azure.Devices.Client.Exceptions.IotHubException>().Retry();
+            policy.Execute(() => ReceiveC2dAsync());
 
         }
         
         public async void ReceiveC2dAsync()
         {
             var deviceClient = DeviceClient.CreateFromConnectionString(IotDevice2, TransportType.Mqtt);
-            int currentRetry = 0;
 
             while (true)
             { /*
@@ -75,6 +76,8 @@ namespace ReciverUWP
                  // inputText = Encoding.UTF8.GetString(receivedMessage.GetBytes());
                   await deviceClient.CompleteAsync(receivedMessage);
                   */
+
+
 
                 Message receivedMessage = await deviceClient.ReceiveAsync();
 
